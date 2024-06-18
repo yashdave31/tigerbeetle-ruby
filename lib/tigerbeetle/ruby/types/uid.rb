@@ -13,9 +13,9 @@ def ID()
       if timestamp <= ID_LAST_TIMESTAMP
         timestamp = ID_LAST_TIMESTAMP
       else
-        ID_LAST_TIMESTAMP = timestamp
+        timestamp = ID_LAST_TIMESTAMP
         begin
-          ID_LAST_RANDOM = SecureRandom.bytes(10)
+          timestamp = SecureRandom.bytes(10)
         rescue
           raise "SecureRandom failed to provide random bytes"
         end
@@ -34,9 +34,9 @@ def ID()
         end
       end
   
-      ID_LAST_RANDOM = [random_lo].pack("Q<") + [random_hi].pack("S<")
+      id_last_random = [random_lo].pack("Q<") + [random_hi].pack("S<")
   
       ulid = [random_lo].pack("Q<") + [random_hi].pack("S<") + [timestamp & 0xFFFF].pack("S<") + [(timestamp >> 16)].pack("L<")
       return UInt128.from_bytes(ulid)
     end
-  end
+end
