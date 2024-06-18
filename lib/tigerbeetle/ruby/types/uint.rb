@@ -215,6 +215,36 @@ class UInt
         end
     end
 
+    def from_tuple(high, low)
+        unless high.is_a?(Integer)
+          raise TypeError, "high must be an integer"
+        end
+    
+        unless low.is_a?(Integer)
+          raise TypeError, "low must be an integer"
+        end
+    
+        if high < 0
+          raise ValueError, "high must be non-negative"
+        end
+    
+        if low < 0
+          raise ValueError, "low must be non-negative"
+        end
+    
+        if high.bit_length > @n_bits / 2
+          msg = "high must be less than 2**#{@n_bits / 2}"
+          raise ValueError, msg
+        end
+    
+        if low.bit_length > @n_bits / 2
+          msg = "low must be less than 2**#{@n_bits / 2}"
+          raise ValueError, msg
+        end
+    
+        new((high << (@n_bits / 2)) | low)
+    end
+
     
 end
 

@@ -103,6 +103,10 @@ def request_ctx(c, packet = nil)
     end
 end
 
+def cint128_to_int(x)
+  return UInt128.new(x.high,x.low).from_tuple
+end
+
 class Client
     # Client for TigerBeetle.
     
