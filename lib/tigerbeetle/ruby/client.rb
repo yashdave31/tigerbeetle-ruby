@@ -115,36 +115,36 @@ class Client
     def initialize(cluster_id, addresses, concurrency_max)
       @tb_client = FFI::MemoryPointer.new(:pointer)
       addresses_raw = addresses.join(",").encode("UTF-8")
-      status = Lib.tb_client_init(
+      status = lib.tb_client_init(
         @tb_client,
         cluster_id.tuple,
         FFI::MemoryPointer.from_string(addresses_raw),
         addresses_raw.size,
         concurrency_max,
         0,
-        Lib.method(:on_completion_fn)
+        lib.method(:on_completion_fn)
       )
   
-      if status != Lib::TB_STATUS_SUCCESS
+      if status != lib::TB_STATUS_SUCCESS
         self.class._raise_status(status)
       end
     end
   
     def self._raise_status(status)
       case status
-      when Lib::TB_STATUS_UNEXPECTED
+      when lib::TB_STATUS_UNEXPECTED
         raise Errors::UnexpectedError
-      when Lib::TB_STATUS_OUT_OF_MEMORY
+      when lib::TB_STATUS_OUT_OF_MEMORY
         raise Errors::OutOfMemoryError
-      when Lib::TB_STATUS_ADDRESS_INVALID
+      when lib::TB_STATUS_ADDRESS_INVALID
         raise Errors::InvalidAddressError
-      when Lib::TB_STATUS_ADDRESS_LIMIT_EXCEEDED
+      when lib::TB_STATUS_ADDRESS_LIMIT_EXCEEDED
         raise Errors::AddressLimitExceededError
-      when Lib::TB_STATUS_CONCURRENCY_MAX_INVALID
+      when lib::TB_STATUS_CONCURRENCY_MAX_INVALID
         raise Errors::InvalidConcurrencyMaxError
-      when Lib::TB_STATUS_SYSTEM_RESOURCES
+      when lib::TB_STATUS_SYSTEM_RESOURCES
         raise Errors::SystemResourcesError
-      when Lib::TB_STATUS_NETWORK_SUBSYSTEM
+      when lib::TB_STATUS_NETWORK_SUBSYSTEM
         raise Errors::NetworkSubsystemError
       else
         msg = "Unexpected status: #{status}"
@@ -159,26 +159,26 @@ class Client
       req = RequestCtx.new(@tb_client)
       req.packet[:user_data] = req.id
       req.packet[:operation] = op.value
-      req.packet[:status] = Lib::TB_PACKET_OK
+      req.packet[:status] = lib::TB_PACKET_OK
       req.packet[:data_size] = count * get_event_size(op)
       req.packet[:data] = data
   
       self.class.instance_variable_get(:@inflight)[req.id] = req
   
       # Submit the request.
-      Lib.tb_client_submit(@tb_client.read_pointer, req.packet)
+      lib.tb_client_submit(@tb_client.read_pointer, req.packet)
   
       # Wait for the response
       req.ready.wait
   
       status = req.packet[:status].to_i
-      if status != Lib::TB_PACKET_OK
+      if status != lib::TB_PACKET_OK
         case status
-        when Lib::TB_PACKET_TOO_MUCH_DATA
+        when lib::TB_PACKET_TOO_MUCH_DATA
           raise Errors::MaximumBatchSizeExceededError
-        when Lib::TB_PACKET_INVALID_OPERATION
+        when lib::TB_PACKET_INVALID_OPERATION
           raise Errors::InvalidOperationError
-        when Lib::TB_PACKET_INVALID_DATA_SIZE
+        when lib::TB_PACKET_INVALID_DATA_SIZE
           raise "unreachable"
         else
           raise "tb_client_submit(): returned packet with invalid status"
@@ -191,7 +191,7 @@ class Client
   
     def close
       unless @tb_client.null?
-        Lib.tb_client_deinit(@tb_client.read_pointer)
+        lib.tb_client_deinit(@tb_client.read_pointer)
         @tb_client = nil
       end
     end
