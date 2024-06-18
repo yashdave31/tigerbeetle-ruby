@@ -41,7 +41,7 @@ def on_completion_fn(context, client, packet, result_ptr, result_len)
     raise "Packet mismatch" if req.packet != packet
   
     if result_len > 0 && !result_ptr.nil?
-      op = bindings.Operation.new(packet.operation.to_i)
+      op = Types::Enums::Operations.new(packet.operation.to_i)
       result_size = get_result_size(op)
       raise "Invalid result length" if result_len % result_size != 0
   
@@ -214,7 +214,7 @@ class Client
       end
   
       results = _do_request(
-        Bindings::Operation::CREATE_ACCOUNTS,
+        Types::Enums::Operations::CREATE_ACCOUNTS,
         count,
         batch,
         :tb_create_accounts_result_t
@@ -223,14 +223,14 @@ class Client
   
       (0...count).map do |idx|
         if results_by_idx.key?(idx)
-          Bindings::CreateAccountsResult.new(
+          TigerBeetle::CreateAccountsResult.new(
             results_by_idx[idx][:index],
-            Bindings::CreateAccountResult.new(results_by_idx[idx][:result])
+            Types::Enums::CreateAccountsResult.new(results_by_idx[idx][:result])
           )
         else
-          Bindings::CreateAccountsResult.new(
+          TigerBeetle::CreateAccountsResult.new(
             idx,
-            Bindings::CreateAccountResult.new(Bindings::CreateAccountResult::OK)
+            Types::Enums::CreateAccountsResult.new(Types::Enums::CreateAccountsResult::OK)
           )
         end
       end
@@ -259,7 +259,7 @@ class Client
       end
   
       results = _do_request(
-        Bindings::Operation::CREATE_TRANSFERS,
+        Types::Enums::Operations::CREATE_TRANSFERS,
         count,
         batch,
         :tb_create_transfers_result_t
@@ -268,14 +268,14 @@ class Client
   
       (0...count).map do |idx|
         if results_by_idx.key?(idx)
-          Bindings::CreateTransfersResult.new(
+          TigerBeetle::CreateTransfersResult.new(
             results_by_idx[idx][:index],
-            Bindings::CreateTransferResult.new(results_by_idx[idx][:result])
+            Types::Enums::CreateTransferResult.new(results_by_idx[idx][:result])
           )
         else
-          Bindings::CreateTransfersResult.new(
+          TigerBeetle::CreateTransfersResult.new(
             idx,
-            Bindings::CreateTransferResult.new(Bindings::CreateTransferResult::OK)
+            Types::Enums::CreateTransferResult.new(Types::Enums::CreateTransferResult::OK)
           )
         end
       end
@@ -289,14 +289,14 @@ class Client
         account_ids.each_with_index { |id, idx| batch[idx] = id.tuple }
     
         results = _do_request(
-          Bindings::Operation::LOOKUP_ACCOUNTS,
+          Types::Enums::Operations::LOOKUP_ACCOUNTS,
           count,
           batch,
           :tb_account_t
         )
     
         results.map do |result|
-          Bindings::Account.new(
+          TigerBeetle::Account.new(
             id: cint128_to_int(result[:id]),
             debits_pending: cint128_to_int(result[:debits_pending]),
             debits_posted: cint128_to_int(result[:debits_posted]),
@@ -322,14 +322,14 @@ class Client
         transfer_ids.each_with_index { |id, idx| batch[idx] = id.tuple }
 
         results = _do_request(
-            Bindings::Operation::LOOKUP_TRANSFERS,
+            Types::Enums::Operations::LOOKUP_TRANSFERS,
             count,
             batch,
             :tb_transfer_t
         )
 
         results.map do |result|
-            Bindings::Transfer.new(
+          TigerBeetle::Transfer.new(
             id: cint128_to_int(result[:id]),
             debit_account_id: cint128_to_int(result[:debit_account_id]),
             credit_account_id: cint128_to_int(result[:credit_account_id]),
@@ -358,14 +358,14 @@ class Client
         batch[0][:flags] = filt.flags.int
     
         results = _do_request(
-          Bindings::Operation::GET_ACCOUNT_BALANCES,
+          Types::Enums::Operations::GET_ACCOUNT_BALANCES,
           1,
           batch,
           :tb_account_balance_t
         )
     
         results.map do |result|
-          Bindings::AccountBalance.new(
+          TigerBeetle::AccountBalance.new(
             debits_pending: cint128_to_int(result[:debits_pending]),
             debits_posted: cint128_to_int(result[:debits_posted]),
             credits_pending: cint128_to_int(result[:credits_pending]),
